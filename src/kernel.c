@@ -2,9 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "idt/idt.h"
-#include "io/io.h"
 
-uint16_t *video_mem = 0;
+uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
 uint16_t terminal_col = 0;
 
@@ -37,7 +36,7 @@ void terminal_writechar(char c, char colour)
 }
 void terminal_initialize()
 {
-    video_mem = (uint16_t *)(0xB8000);
+    video_mem = (uint16_t*)(0xB8000);
     terminal_row = 0;
     terminal_col = 0;
     for (int y = 0; y < VGA_HEIGHT; y++)
@@ -46,13 +45,14 @@ void terminal_initialize()
         {
             terminal_putchar(x, y, ' ', 0);
         }
-    }
+    }   
 }
 
-size_t strlen(const char *str)
+
+size_t strlen(const char* str)
 {
     size_t len = 0;
-    while (str[len])
+    while(str[len])
     {
         len++;
     }
@@ -60,7 +60,7 @@ size_t strlen(const char *str)
     return len;
 }
 
-void print(const char *str)
+void print(const char* str)
 {
     size_t len = strlen(str);
     for (int i = 0; i < len; i++)
@@ -76,7 +76,4 @@ void kernel_main()
 
     // Initialize the interrupt descriptor table
     idt_init();
-
-    outb(0x60, 0xff);
-
 }
