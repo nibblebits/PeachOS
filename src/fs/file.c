@@ -198,6 +198,21 @@ out:
     return res;
 }
 
+int fclose(int fd)
+{
+    int res = 0;
+    struct file_descriptor* desc = file_get_descriptor(fd);
+    if (!desc)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    res = desc->filesystem->close(desc->private);
+out:
+    return res;
+}
+
 int fseek(int fd, int offset, FILE_SEEK_MODE whence)
 {
     int res = 0;
