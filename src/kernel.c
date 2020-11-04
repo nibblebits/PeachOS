@@ -10,6 +10,7 @@
 #include "disk/disk.h"
 #include "fs/pparser.h"
 #include "disk/streamer.h"
+#include "task/tss.h"
 #include "gdt/gdt.h"
 #include "config.h"
 uint16_t* video_mem = 0;
@@ -77,11 +78,15 @@ void panic(const char* msg)
     while(1) {}
 }
 
+struct tss tss;
 struct gdt gdt_real[PEACHOS_TOTAL_GDT_SEGMENTS];
 struct gdt_structured gdt_structured[PEACHOS_TOTAL_GDT_SEGMENTS] = {
     {.base = 0x00, .limit = 0x00, .type = 0x00},                // NULL Segment
     {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},           // Kernel code segment
-    {.base = 0x00, .limit = 0xffffffff, .type = 0x92}            // Kernel data segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0x92},            // Kernel data segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0xf8},              // User code segment
+    {.base = 0x00, .limit = 0xffffffff, .type = 0xf2},             // User data segment
+    {.base = (uint32_t)&tss, .limit=sizeof(tss), .type = 0xE9}      // TSS Segment
 };
 void kernel_main()
 {
@@ -93,7 +98,7 @@ void kernel_main()
 
     // Load the gdt
     gdt_load(gdt_real, sizeof(gdt_real));
-    
+
     // Initialize the heap
     kheap_init();
 
@@ -105,6 +110,14 @@ void kernel_main()
 
     // Initialize the interrupt descriptor table
     idt_init();
+
+    // Setup the TSS
+    memset(&tss, 0x00, sizeof(tss));
+    tss.esp0 = 0x600000;
+    tss.ss0 = KERNEL_DATA_SELECTOR;
+
+    // Load the TSS
+    tss_load(0x28);
 
     // Setup paging
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
