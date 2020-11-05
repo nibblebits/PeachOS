@@ -30,6 +30,19 @@ void paging_switch(uint32_t* directory)
     current_directory = directory;
 }
 
+void paging_free_4gb(struct paging_4gb_chunk* chunk)
+{
+    for (int i = 0; i < 1024; i++)
+    {
+        uint32_t entry = chunk->directory_entry[i];
+        uint32_t* table = (uint32_t*)(entry & 0xfffff000);
+        kfree(table);
+    }
+
+    kfree(chunk->directory_entry);
+    kfree(chunk);
+}
+
 uint32_t* paging_4gb_chunk_get_directory(struct paging_4gb_chunk* chunk)
 {
     return chunk->directory_entry;
