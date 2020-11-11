@@ -5,8 +5,8 @@
 #include "memory/memory.h"
 #include "string/string.h"
 #include "fs/file.h"
-#include "heap/kheap.h"
-#include "paging/paging.h"
+#include "memory/heap/kheap.h"
+#include "memory/paging/paging.h"
 #include "kernel.h"
 
 // The current process that is running
@@ -24,11 +24,11 @@ struct process* process_current()
     return current_process;
 }
 
-int process_get(int process_id)
+struct process* process_get(int process_id)
 {
     if (process_id < 0 || process_id >= PEACHOS_MAX_PROCESSES)
     {
-        return -EINVARG;
+        return NULL;
     }
 
     return processes[process_id];
@@ -91,6 +91,32 @@ int process_map_memory(struct process* process)
     return res;
 }
 
+int process_get_free_slot()
+{
+    for (int i = 0; i < PEACHOS_MAX_PROCESSES; i++)
+    {
+        if (processes[i] == 0)
+            return i;
+    }
+
+    return -EISTKN;
+}
+
+int process_load(const char* filename, struct process** process)
+{
+    int res = 0;
+    int process_slot = process_get_free_slot();
+    if (process_slot < 0)
+    {
+        res = -EISTKN;
+        goto out;
+    }
+
+    res = process_load_for_slot(filename, process, process_slot);
+out:
+    return res;
+}
+
 int process_load_for_slot(const char* filename, struct process** process, int process_slot)
 {
     int res = 0;
@@ -138,7 +164,7 @@ int process_load_for_slot(const char* filename, struct process** process, int pr
 
     _process->task = task;
 
-    res = process_map_memory(process);
+    res = process_map_memory(_process);
     if (res < 0)
     {
         goto out;
