@@ -10,6 +10,7 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	sudo mount -t vfat ./bin/os.bin /mnt/d
 	# Copy a file over
 	sudo cp ./hello.txt /mnt/d
+	sudo cp ./programs/blank/blank.bin /mnt/d
 	sudo umount /mnt/d
 ./bin/kernel.bin: $(FILES)
 	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
