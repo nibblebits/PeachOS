@@ -4,26 +4,26 @@
 #include "process.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
+#include "idt/idt.h"
 
 // The current task that is running
-struct task* current_task = 0;
+struct task *current_task = 0;
 
 // Task linked list
-struct task* task_tail = 0;
-struct task* task_head = 0;
+struct task *task_tail = 0;
+struct task *task_head = 0;
 
-int task_init(struct task* task, struct process* process);
+int task_init(struct task *task, struct process *process);
 
-
-struct task* task_current()
+struct task *task_current()
 {
     return current_task;
 }
 
-struct task* task_new(struct process* process)
+struct task *task_new(struct process *process)
 {
     int res = 0;
-    struct task* task = kzalloc(sizeof(struct task));
+    struct task *task = kzalloc(sizeof(struct task));
     if (!task)
     {
         res = -ENOMEM;
@@ -48,7 +48,7 @@ struct task* task_new(struct process* process)
     task->prev = task_tail;
     task_tail = task;
 
-out:    
+out:
     if (ISERR(res))
     {
         task_free(task);
@@ -58,7 +58,7 @@ out:
     return task;
 }
 
-struct task* task_get_next()
+struct task *task_get_next()
 {
     if (!current_task->next)
     {
@@ -68,7 +68,7 @@ struct task* task_get_next()
     return current_task->next;
 }
 
-static void task_list_remove(struct task* task)
+static void task_list_remove(struct task *task)
 {
     if (task->prev)
     {
@@ -91,7 +91,7 @@ static void task_list_remove(struct task* task)
     }
 }
 
-int task_free(struct task* task)
+int task_free(struct task *task)
 {
     paging_free_4gb(task->page_directory);
     task_list_remove(task);
@@ -101,11 +101,38 @@ int task_free(struct task* task)
     return 0;
 }
 
-int task_switch(struct task* task)
+int task_switch(struct task *task)
 {
     current_task = task;
     paging_switch(task->page_directory);
     return 0;
+}
+
+void task_save_state(struct task *task, struct interrupt_frame *frame)
+{
+    task->registers.ip = frame->ip;
+    task->registers.cs = frame->cs;
+    task->registers.flags = frame->flags;
+    task->registers.esp = frame->esp;
+    task->registers.ss = frame->ss;
+    task->registers.eax = frame->eax;
+    task->registers.ebp = frame->ebp;
+    task->registers.ebx = frame->ebx;
+    task->registers.ecx = frame->ecx;
+    task->registers.edi = frame->edi;
+    task->registers.edx = frame->edx;
+    task->registers.esi = frame->esi;
+}
+
+void task_current_save_state(struct interrupt_frame *frame)
+{
+    if (!task_current())
+    {
+        panic("No current task to save\n");
+    }
+
+    struct task *task = task_current();
+    task_save_state(task, frame);
 }
 
 int task_page()
@@ -126,7 +153,7 @@ void task_run_first_ever_task()
     task_return(&task_head->registers);
 }
 
-int task_init(struct task* task, struct process* process)
+int task_init(struct task *task, struct process *process)
 {
     memset(task, 0, sizeof(struct task));
     // Map the entire 4GB address space to its self
