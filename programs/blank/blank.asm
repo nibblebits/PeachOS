@@ -6,5 +6,7 @@ global _start
 
 _start:
 
-label:
-    jmp label
+    mov eax, 0
+    int 0x80
+    
+    jmp $
