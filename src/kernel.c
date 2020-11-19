@@ -6,6 +6,7 @@
 #include "memory/paging/paging.h"
 #include "memory/memory.h"
 #include "string/string.h"
+#include "isr80h/isr80h.h"
 #include "task/task.h"
 #include "task/process.h"
 #include "fs/file.h"
@@ -137,6 +138,9 @@ void kernel_main()
 
     // Enable paging
     enable_paging();
+
+    // Register the kernel commands
+    isr80h_register_commands();
 
     struct process* process = 0;
     int res = process_load("0:/blank.bin", &process);
