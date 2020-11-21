@@ -125,7 +125,7 @@ void task_save_state(struct task *task, struct interrupt_frame *frame)
     task->registers.edx = frame->edx;
     task->registers.esi = frame->esi;
 }
-int copy_string_to_task(struct task* task, void* virtual, void* phys, int max)
+int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
 {
     if (max >= PAGING_PAGE_SIZE)
     {
@@ -142,7 +142,7 @@ int copy_string_to_task(struct task* task, void* virtual, void* phys, int max)
 
     uint32_t* task_directory = task->page_directory->directory_entry;
     uint32_t old_entry = paging_get(task_directory, tmp);
-    paging_map(task_directory, tmp, tmp, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    paging_map(task->page_directory, tmp, tmp, PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     paging_switch(task->page_directory);
     strncpy(tmp, virtual, max);
     kernel_page();

@@ -160,7 +160,8 @@ uint32_t paging_get(uint32_t* directory, void* virt)
 {
     uint32_t directory_index = 0;
     uint32_t table_index = 0;
-    int res = paging_get_indexes(virt, &directory_index, &table_index);
+    paging_get_indexes(virt, &directory_index, &table_index);
+    
     uint32_t entry = directory[directory_index];
     uint32_t* table = (uint32_t*)(entry & 0xfffff000);
     return table[table_index];
