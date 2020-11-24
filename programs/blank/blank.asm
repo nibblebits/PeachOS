@@ -6,10 +6,11 @@ global _start
 
 _start:
 
-    push 20
-    push 30
-    mov eax, 0 ; Command 0 SUM
+    push message
+    mov eax, 1 ; Command print
     int 0x80
-    add esp, 8
-    
+    add esp, 4
     jmp $
+
+section .data
+message: db 'I can talk with the kernel!', 0
