@@ -1,5 +1,5 @@
 FILES=./build/blank.o
-INCLUDES=
+INCLUDES= -I../stdlib/src
 all: ${FILES}
 	i686-elf-gcc -g -T ./linker.ld -o ./blank.elf -ffreestanding -O0 -nostdlib -fpic -g ${FILES} ../stdlib/stdlib.elf
 
