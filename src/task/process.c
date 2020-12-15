@@ -200,7 +200,7 @@ static int process_map_elf(struct process* process)
         {
             flags |= PAGING_IS_WRITEABLE;
         }
-        res = paging_map_to(process->task->page_directory, paging_align_to_lower_page((void*)phdr->p_vaddr), paging_align_to_lower_page(phdr_phys_address), paging_align_address(phdr_phys_address+phdr->p_filesz), flags);
+        res = paging_map_to(process->task->page_directory, paging_align_to_lower_page((void*)phdr->p_vaddr), paging_align_to_lower_page(phdr_phys_address), paging_align_address(phdr_phys_address+phdr->p_memsz), flags);
         if (ISERR(res))
         {
             break;
