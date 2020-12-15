@@ -6,6 +6,7 @@ global print:function
 global getkey:function
 global peachos_malloc:function
 global peachos_free:function
+global peachos_putchar:function
 
 ; void print(const char* filename)
 print:
@@ -27,6 +28,16 @@ getkey:
     pop ebp
     ret
 
+; void peachos_putchar(char c)
+peachos_putchar:
+    push ebp
+    mov ebp, esp
+    mov eax, 3 ; Command putchar
+    push dword [ebp+8] ; Variable "c"
+    int 0x80
+    add esp, 4
+    pop ebp
+    ret
 
 ; void* peachos_malloc(size_t size)
 peachos_malloc:
