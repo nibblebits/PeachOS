@@ -3,7 +3,7 @@
 section .asm
 
 global print:function
-global getkey:function
+global peachos_getkey:function
 global peachos_malloc:function
 global peachos_free:function
 global peachos_putchar:function
@@ -19,8 +19,8 @@ print:
     pop ebp
     ret
 
-; int getkey()
-getkey:
+; int peachos_getkey()
+peachos_getkey:
     push ebp
     mov ebp, esp
     mov eax, 2 ; Command getkey
