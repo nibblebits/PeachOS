@@ -122,6 +122,66 @@ static struct process_allocation* process_get_allocation_by_addr(struct process*
     return 0;
 }
 
+void process_get_arguments(struct process* process, int* argc, char*** argv)
+{
+    *argc = process->arguments.argc;
+    *argv = process->arguments.argv;
+}
+
+int process_count_command_arguments(struct command_argument* root_argument)
+{
+    struct command_argument* current = root_argument;
+    int i = 0;
+    while(current)
+    {
+        i++;
+        current = current->next;
+    }
+
+    return i;
+}
+
+
+int process_inject_arguments(struct process* process, struct command_argument* root_argument)
+{
+    int res = 0;
+    struct command_argument* current = root_argument;
+    int i = 0;
+    int argc = process_count_command_arguments(root_argument);
+    if (argc == 0)
+    {
+        res = -EIO;
+        goto out;
+    }
+
+    char **argv = process_malloc(process, sizeof(const char*) * argc);
+    if (!argv)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
+
+
+    while(current)
+    {
+        char* argument_str = process_malloc(process, sizeof(current->argument));
+        if (!argument_str)
+        {
+            res = -ENOMEM;
+            goto out;
+        }
+
+        strncpy(argument_str, current->argument, sizeof(current->argument));
+        argv[i] = argument_str;
+        current = current->next;
+        i++;
+    }
+
+    process->arguments.argc = argc;
+    process->arguments.argv = argv;
+out:
+    return res;
+}
 void process_free(struct process* process, void* ptr)
 {
     // Unlink the pages from the process for the given address
@@ -137,7 +197,7 @@ void process_free(struct process* process, void* ptr)
     {
         return;
     }
-    
+
     // Unjoin the allocation
     process_allocation_unjoin(process, ptr);
 

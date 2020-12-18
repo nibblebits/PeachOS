@@ -4,11 +4,10 @@
 #include "string.h"
 int main(int argc, char** argv)
 {
-    char str[] = "hello world";
-    struct command_argument* root_command = peachos_parse_command(str, sizeof(str));
-    printf("%s\n", root_command->argument);
-    printf("%s\n", root_command->next->argument);
+    struct process_arguments arguments;
+    peachos_process_get_arguments(&arguments);
 
+    printf("%i %s\n", arguments.argc, arguments.argv[0]);
     while(1) 
     {
     }
