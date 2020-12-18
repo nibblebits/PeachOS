@@ -61,17 +61,30 @@ void* process_malloc(struct process* process, size_t size)
     void* ptr = kzalloc(size);
     if (!ptr)
     {
-        return 0;
+        goto out_err;
     }
 
     int index = process_find_free_allocation_index(process);
     if (index < 0)
     {
-        return 0;
+        goto out_err;
     }
 
+    int res = paging_map_to(process->task->page_directory, ptr, ptr, paging_align_address(ptr+size), PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    if (res < 0)
+    {
+        goto out_err;
+    }
+    
     process->allocations[index] = ptr;
     return ptr;
+
+out_err:
+    if(ptr)
+    {
+        kfree(ptr);
+    }
+    return 0;
 }
 
 static bool process_is_process_pointer(struct process* process, void* ptr)
