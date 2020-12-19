@@ -28,5 +28,7 @@ void peachos_terminal_readline(char* out, int max, bool output_while_typing);
 void peachos_process_load_start(const char* filename);
 struct command_argument* peachos_parse_command(const char* command, int max);
 void peachos_process_get_arguments(struct process_arguments* arguments);
+int peachos_system(struct command_argument* arguments);
+int peachos_system_run(const char* command);
 
 #endif
