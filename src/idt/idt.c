@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "memory/memory.h"
 #include "task/task.h"
+#include "task/process.h"
 #include "io/io.h"
 #include "status.h"
 struct idt_desc idt_descriptors[PEACHOS_TOTAL_INTERRUPTS];
@@ -52,6 +53,12 @@ void idt_set(int interrupt_no, void* address)
     desc->offset_2 = (uint32_t) address >> 16;
 }
 
+void idt_handle_exception()
+{
+    process_terminate(task_current()->process);
+    task_next();
+}
+
 void idt_init()
 {
     memset(idt_descriptors, 0, sizeof(idt_descriptors));
@@ -67,6 +74,11 @@ void idt_init()
     idt_set(0x80, isr80h_wrapper);
 
 
+    for (int i = 0; i < 0x20; i++)
+    {
+        idt_register_interrupt_callback(i, idt_handle_exception);
+    }
+    
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
 }
