@@ -207,6 +207,7 @@ out:
 int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private, struct fat_directory *directory)
 {
     int res = 0;
+    struct fat_directory_item *dir = 0x00;
     struct fat_header *primary_header = &fat_private->header.primary_header;
     int root_dir_sector_pos = (primary_header->fat_copies * primary_header->sectors_per_fat) + primary_header->reserved_sectors;
     int root_dir_entries = fat_private->header.primary_header.root_dir_entries;
@@ -219,24 +220,24 @@ int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private,
 
     int total_items = fat16_get_total_items_for_directory(disk, root_dir_sector_pos);
 
-    struct fat_directory_item *dir = kzalloc(root_dir_size);
+    dir = kzalloc(root_dir_size);
     if (!dir)
     {
         res = -ENOMEM;
-        goto out;
+        goto err_out;
     }
 
     struct disk_stream *stream = fat_private->directory_stream;
     if (diskstreamer_seek(stream, fat16_sector_to_absolute(disk, root_dir_sector_pos)) != PEACHOS_ALL_OK)
     {
         res = -EIO;
-        goto out;
+        goto err_out;
     }
 
     if (diskstreamer_read(stream, dir, root_dir_size) != PEACHOS_ALL_OK)
     {
         res = -EIO;
-        goto out;
+        goto err_out;
     }
 
     directory->item = dir;
@@ -244,6 +245,14 @@ int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private,
     directory->sector_pos = root_dir_sector_pos;
     directory->ending_sector_pos = root_dir_sector_pos + (root_dir_size / disk->sector_size);
 out:
+    return res;
+
+err_out:
+    if (dir)
+    {
+        kfree(dir);
+    }
+
     return res;
 }
 int fat16_resolve(struct disk *disk)
