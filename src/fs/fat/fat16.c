@@ -303,30 +303,34 @@ out:
     return res;
 }
 
-void fat16_to_proper_string(char **out, const char *in)
+void fat16_to_proper_string(char **out, const char *in, size_t size)
 {
+    int i = 0;
     while (*in != 0x00 && *in != 0x20)
     {
         **out = *in;
         *out += 1;
         in += 1;
+        // We cant process anymore since we have exceeded the input buffer size
+        if (i >= size-1)
+        {
+            break;
+        }
+        i++;
     }
 
-    if (*in == 0x20)
-    {
-        **out = 0x00;
-    }
+    **out = 0x00;
 }
 
 void fat16_get_full_relative_filename(struct fat_directory_item *item, char *out, int max_len)
 {
     memset(out, 0x00, max_len);
     char *out_tmp = out;
-    fat16_to_proper_string(&out_tmp, (const char *)item->filename);
+    fat16_to_proper_string(&out_tmp, (const char *)item->filename, sizeof(item->filename));
     if (item->ext[0] != 0x00 && item->ext[0] != 0x20)
     {
         *out_tmp++ = '.';
-        fat16_to_proper_string(&out_tmp, (const char *)item->ext);
+        fat16_to_proper_string(&out_tmp, (const char *)item->ext, sizeof(item->ext));
     }
 }
 
