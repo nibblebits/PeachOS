@@ -243,7 +243,7 @@ int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private,
     directory->item = dir;
     directory->total = total_items;
     directory->sector_pos = root_dir_sector_pos;
-    directory->ending_sector_pos = root_dir_sector_pos + (root_dir_size / disk->sector_size);
+    directory->ending_sector_pos = root_dir_sector_pos + total_sectors - 1;
 out:
     return res;
 
