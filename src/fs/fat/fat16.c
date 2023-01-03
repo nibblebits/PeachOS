@@ -696,27 +696,33 @@ out:
     return res;
 }
 
-int fat16_read(struct disk *disk, void *descriptor, uint32_t size, uint32_t nmemb, char *out_ptr)
+int fat16_read(struct disk* disk, void* descriptor, uint32_t size, uint32_t nmemb, char* out_ptr)
 {
-    int res = 0;
-    struct fat_file_descriptor *fat_desc = descriptor;
-    struct fat_directory_item *item = fat_desc->item->item;
-    int offset = fat_desc->pos;
-    for (uint32_t i = 0; i < nmemb; i++)
-    {
-        res = fat16_read_internal(disk, fat16_get_first_cluster(item), offset, size, out_ptr);
-        if (ISERR(res))
-        {
-            goto out;
-        }
+  int res = 0;
+  struct fat_file_descriptor* fat_desc = descriptor;
+  struct fat_directory_item* item = fat_desc->item->item;
+  /* TODO - I think this is safe, since seek guarantees filesize > pos */
+  uint32_t filesize_left_to_read = item->filesize - fat_desc->pos;
+  int offset = fat_desc->pos;
+  uint32_t cnt = 0;
+  while (!ISERR(res) && cnt < nmemb && filesize_left_to_read >= size)
+  {
+    res = fat16_read_internal(disk, fat16_get_first_cluster(item), offset, size, out_ptr);
+    out_ptr += size;
+    offset += size;
+    filesize_left_to_read -= size;
+    cnt += 1;
+  }
 
-        out_ptr += size;
-        offset += size;
-    }
-
-    res = nmemb;
-out:
-    return res;
+  /* Only update seek pointer (pos) if we didn't have any errors
+   * Note: reaching EOF is not an error
+   */
+  if (!ISERR(res))
+  {
+      res = cnt;
+      fat_desc->pos = offset;
+  }
+  return res;
 }
 
 int fat16_seek(void *private, uint32_t offset, FILE_SEEK_MODE seek_mode)
@@ -731,15 +737,15 @@ int fat16_seek(void *private, uint32_t offset, FILE_SEEK_MODE seek_mode)
     }
 
     struct fat_directory_item *ritem = desc_item->item;
-    if (offset >= ritem->filesize)
-    {
-        res = -EIO;
-        goto out;
-    }
 
     switch (seek_mode)
     {
     case SEEK_SET:
+				if (offset >= ritem->filesize)
+				{
+						res = -EIO;
+						goto out;
+				}
         desc->pos = offset;
         break;
 
@@ -748,6 +754,11 @@ int fat16_seek(void *private, uint32_t offset, FILE_SEEK_MODE seek_mode)
         break;
 
     case SEEK_CUR:
+				if ((offset + desc->pos) >= ritem->filesize)
+				{
+						res = -EIO;
+						goto out;
+				}
         desc->pos += offset;
         break;
 
