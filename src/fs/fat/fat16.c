@@ -243,7 +243,7 @@ int fat16_get_root_directory(struct disk *disk, struct fat_private *fat_private,
     directory->item = dir;
     directory->total = total_items;
     directory->sector_pos = root_dir_sector_pos;
-    directory->ending_sector_pos = root_dir_sector_pos + (root_dir_size / disk->sector_size);
+    directory->ending_sector_pos = root_dir_sector_pos + total_sectors;
 out:
     return res;
 
@@ -354,7 +354,7 @@ struct fat_directory_item *fat16_clone_directory_item(struct fat_directory_item 
 
 static uint32_t fat16_get_first_cluster(struct fat_directory_item *item)
 {
-    return (item->high_16_bits_first_cluster) | item->low_16_bits_first_cluster;
+    return (item->high_16_bits_first_cluster << 16) | item->low_16_bits_first_cluster;
 };
 
 static int fat16_cluster_to_sector(struct fat_private *private, int cluster)
@@ -378,7 +378,7 @@ static int fat16_get_fat_entry(struct disk *disk, int cluster)
     }
 
     uint32_t fat_table_position = fat16_get_first_fat_sector(private) * disk->sector_size;
-    res = diskstreamer_seek(stream, fat_table_position * (cluster * PEACHOS_FAT16_FAT_ENTRY_SIZE));
+    res = diskstreamer_seek(stream, fat_table_position + (cluster * PEACHOS_FAT16_FAT_ENTRY_SIZE));
     if (res < 0)
     {
         goto out;
@@ -408,7 +408,7 @@ static int fat16_get_cluster_for_offset(struct disk *disk, int starting_cluster,
     for (int i = 0; i < clusters_ahead; i++)
     {
         int entry = fat16_get_fat_entry(disk, cluster_to_use);
-        if (entry == 0xFF8 || entry == 0xFFF)
+        if (entry == 0xFFf8 || entry == 0xFFFF)
         {
             // We are at the last entry in the file
             res = -EIO;
@@ -713,7 +713,7 @@ int fat16_read(struct disk *disk, void *descriptor, uint32_t size, uint32_t nmem
         out_ptr += size;
         offset += size;
     }
-
+    fat_desc->pos = offset;
     res = nmemb;
 out:
     return res;

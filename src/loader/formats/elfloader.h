@@ -42,6 +42,9 @@ struct elf_file
 };
 
 int elf_load(const char* filename, struct elf_file** file_out);
+struct elf_file* elf_file_new();
+void elf_file_free(struct elf_file* file);
+
 void elf_close(struct elf_file* file);
 void* elf_virtual_base(struct elf_file* file);
 void* elf_virtual_end(struct elf_file* file);

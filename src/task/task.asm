@@ -22,9 +22,8 @@ task_return:
     push dword [ebx+40]
 
     ; Push the flags
-    pushf
-    pop eax
-    or eax, 0x200
+    mov eax, [ebx+36]
+    or eax, 0x200 ; interrupt enable flag set
     push eax
 
     ; Push the code segment
