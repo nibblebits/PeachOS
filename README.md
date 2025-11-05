@@ -6,7 +6,7 @@ Part two video course is now available get it here:
 
 Welcome to our comprehensive kernel development course, meticulously designed for learners who are interested in creating a multitasking operating system and kernel from the ground up. This course assumes no previous experience in kernel programming, ensuring a complete understanding of concepts starting from the basics. This is the code repository you will build from scratch when learning kernel development in our kernel course.
 
-[![Get the Course](https://img.shields.io/badge/Get%20the%20Course-Discount%20Link-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch?coupon=GITHUBKERNELDISCOUNT)
+[![Get the Part One Course](https://img.shields.io/badge/Get%20the%20Part%20One%20Course-Discount%20Link-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch?coupon=GITHUBKERNELDISCOUNT)
 
 ## About this Course
 
